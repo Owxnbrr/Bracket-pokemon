@@ -263,11 +263,9 @@
 
 <script>
 /**
- * Bracket single elimination pour 6 ou 7 joueurs.
- * - Si 6 joueurs -> 2 BYE (2 joueurs en demi-direct)
- * - Si 7 joueurs -> 1 BYE (1 joueur en demi-direct)
- *
- * Tu modifies juste le tableau `players`.
+ * Bracket single elimination pour 7 joueurs (Élimination directe)
+ * - 3 matchs au 1er tour + 1 BYE (1 joueur direct en demi)
+ * - Ordre des joueurs FIXE (pas de shuffle, pas de changement au reload)
  */
 const players = [
   "Owxnbrr",
@@ -276,32 +274,29 @@ const players = [
   "Zaliky",
   "Sensei",
   "Nessia",
-  "Loufox", 
+  "Loufox",
 ];
 
-// Helpers
 const is7 = players.length === 7;
 const is6 = players.length === 6;
 if (!is6 && !is7) {
   alert("Mets 6 ou 7 joueurs dans le tableau players.");
 }
 
-// Tirage au sort (optionnel). Commente si tu veux garder l'ordre.
-shuffle(players);
-
 // Build rounds structure
-// Round 1: (6 joueurs => 2 matchs + 2 BYE)  (7 joueurs => 3 matchs + 1 BYE)
 const round1 = [];
 let idx = 0;
 
 if (is6) {
   round1.push(makeMatch(players[idx++], players[idx++], "QF A"));
   round1.push(makeMatch(players[idx++], players[idx++], "QF B"));
-  // BYE slots stored as "advances"
+
   const bye1 = players[idx++];
   const bye2 = players[idx++];
+
   const semi1 = makeMatch("Gagnant QF A", bye1 + " (BYE)", "SF 1");
   const semi2 = makeMatch("Gagnant QF B", bye2 + " (BYE)", "SF 2");
+
   renderBracket([round1, [semi1, semi2], [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE")]]);
 }
 
@@ -309,9 +304,12 @@ if (is7) {
   round1.push(makeMatch(players[idx++], players[idx++], "QF A"));
   round1.push(makeMatch(players[idx++], players[idx++], "QF B"));
   round1.push(makeMatch(players[idx++], players[idx++], "QF C"));
+
   const bye = players[idx++];
+
   const semi1 = makeMatch("Gagnant QF A", bye + " (BYE)", "SF 1");
   const semi2 = makeMatch("Gagnant QF B", "Gagnant QF C", "SF 2");
+
   renderBracket([round1, [semi1, semi2], [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE")]]);
 }
 
@@ -321,14 +319,12 @@ function renderBracket(rounds){
   const el = document.getElementById("bracket");
   el.innerHTML = "";
 
-  // Create columns
   rounds.forEach((round, rIndex) => {
     const col = document.createElement("div");
     col.className = "round" + (rIndex > 0 ? " nextRound" : "");
     col.innerHTML = `<div class="roundHeader">${roundTitle(rIndex, rounds.length)}</div>`;
 
-    // We use slots to help align + draw connectors
-    round.forEach((m, mIndex) => {
+    round.forEach((m) => {
       const slot = document.createElement("div");
       slot.className = "slot";
 
@@ -336,7 +332,6 @@ function renderBracket(rounds){
       card.className = "match";
       card.dataset.label = m.label;
 
-      // Fake score placeholders (tu peux les remplir après)
       const score = m.score ?? "";
 
       card.innerHTML = `
@@ -351,44 +346,36 @@ function renderBracket(rounds){
       col.appendChild(slot);
     });
 
-    // add a final badge
     if (rIndex === rounds.length - 1) {
       const badge = document.createElement("div");
       badge.className = "finalBadge";
-      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO3</div>`;
+      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO1 (ou BO3)</div>`;
       col.insertBefore(badge, col.children[1]);
     }
 
     el.appendChild(col);
   });
 
-  // Draw connectors (basic): connect R1->R2 and R2->R3
-  // We connect pairs visually: (0,1)->0 ; (2,3)->1 ... for each round.
   drawConnectors(el);
 }
 
 function drawConnectors(container){
   const cols = [...container.querySelectorAll(".round")];
 
-  // For each connection between column i and i+1
   for (let i = 0; i < cols.length - 1; i++){
     const fromSlots = [...cols[i].querySelectorAll(".slot")];
     const toSlots = [...cols[i+1].querySelectorAll(".slot")];
 
-    // mapping:
-    // Round1 -> Semi: from [0,1] -> to[0] and (if exists) from [2] -> to[1] or [2,?] -> to[1]
-    // Semi -> Final: from [0,1] -> to[0]
     const pairs = [];
     if (fromSlots.length === 2 && toSlots.length === 2) {
-      pairs.push({from:[0], to:0, single:true}); // actually each semi is from winner of one match + bye, so single line is fine
+      pairs.push({from:[0], to:0, single:true});
       pairs.push({from:[1], to:1, single:true});
     } else if (fromSlots.length === 3 && toSlots.length === 2) {
-      pairs.push({from:[0], to:0, single:true}); // QF A -> SF1 (with bye)
-      pairs.push({from:[1,2], to:1, single:false}); // QF B & C -> SF2
+      pairs.push({from:[0], to:0, single:true});       // QF A -> SF 1 (avec BYE)
+      pairs.push({from:[1,2], to:1, single:false});    // QF B & QF C -> SF 2
     } else if (fromSlots.length === 2 && toSlots.length === 1) {
       pairs.push({from:[0,1], to:0, single:false});
     } else {
-      // generic: group by 2
       for (let t=0; t<toSlots.length; t++){
         const a = t*2, b = t*2+1;
         if (b < fromSlots.length) pairs.push({from:[a,b], to:t, single:false});
@@ -398,15 +385,12 @@ function drawConnectors(container){
 
     pairs.forEach(p => {
       const toSlot = toSlots[p.to];
-      const toCard = toSlot.querySelector(".match");
 
-      // For each from, add a short hline on from card
       p.from.forEach(fi => {
         const fromCard = fromSlots[fi].querySelector(".match");
         fromCard.dataset.next = "1";
       });
 
-      // If single, just draw a short hline + no vline
       if (p.single){
         const h = document.createElement("div");
         h.className = "hline";
@@ -414,8 +398,6 @@ function drawConnectors(container){
         return;
       }
 
-      // Create vertical line spanning from first fromSlot center to second fromSlot center,
-      // positioned in the gap area of the next column slot.
       const firstFromRect = fromSlots[p.from[0]].getBoundingClientRect();
       const lastFromRect  = fromSlots[p.from[p.from.length-1]].getBoundingClientRect();
       const toRect = toSlot.getBoundingClientRect();
@@ -449,18 +431,13 @@ function roundTitle(i, total){
   return "Demi-finales";
 }
 
-function shuffle(arr){
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#039;"
   }[s]));
 }
 </script>
+
 </body>
 </html>
