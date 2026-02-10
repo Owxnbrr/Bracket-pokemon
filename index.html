@@ -301,14 +301,18 @@ if (is6) {
 }
 
 if (is7) {
-  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "1—0"));
-  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "0—1"));
-  round1.push(makeMatch(players[idx++], players[idx++], "QF C", "1—0"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "1-0", "a")); // a = joueur du haut
+  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "0-1", "b")); // b = joueur du bas
+  round1.push(makeMatch(players[idx++], players[idx++], "QF C", "1-0", "a"));
 
   const bye = players[idx++];
 
-  const semi1 = makeMatch("Gagnant QF A", bye + " (BYE)", "SF 1", "—");
-  const semi2 = makeMatch("Gagnant QF B", "Gagnant QF C", "SF 2", "—");
+  const qfA_w = getWinner(round1[0]);
+  const qfB_w = getWinner(round1[1]);
+  const qfC_w = getWinner(round1[2]);
+
+  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "—");
+  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "—");
 
   renderBracket([
     round1,
@@ -316,6 +320,7 @@ if (is7) {
     [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE", "—")]
   ]);
 }
+
 
 
 // ------------ UI Render ------------
@@ -426,9 +431,10 @@ function drawConnectors(container){
 
 // ------------ Data helpers ------------
 
-function makeMatch(a,b,label,score){
-  return { a, b, label, score };
+function makeMatch(a, b, label, score, winner){
+  return { a, b, label, score, winner }; // winner = "a" ou "b"
 }
+
 
 function roundTitle(i, total){
   if (i === 0) return "Quarts";
@@ -442,6 +448,12 @@ function escapeHtml(str){
     '"':"&quot;","'":"&#039;"
   }[s]));
 }
+function getWinner(match){
+  if (match.winner === "a") return match.a;
+  if (match.winner === "b") return match.b;
+  return "Gagnant " + match.label;
+}
+
 </script>
 
 </body>
