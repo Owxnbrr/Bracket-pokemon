@@ -311,8 +311,8 @@ if (is7) {
   const qfB_w = getWinner(round1[1]);
   const qfC_w = getWinner(round1[2]);
 
-  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "—");
-  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "—");
+  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "1—0", "a");
+  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0—1", "b");
 
   renderBracket([
     round1,
