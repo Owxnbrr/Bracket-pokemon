@@ -301,8 +301,9 @@ if (is6) {
 }
 
 if (is7) {
-  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "1-0", "a")); // a = joueur du haut
-  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "0-1", "b")); // b = joueur du bas
+  // Quarts
+  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "1-0", "a"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "0-1", "b"));
   round1.push(makeMatch(players[idx++], players[idx++], "QF C", "1-0", "a"));
 
   const bye = players[idx++];
@@ -311,15 +312,24 @@ if (is7) {
   const qfB_w = getWinner(round1[1]);
   const qfC_w = getWinner(round1[2]);
 
-  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "1—0", "a");
-  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0—1", "b");
+  // Demis (mets winner "a" ou "b" selon le gagnant)
+  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "1-0", "a");
+  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0-1", "b");
+
+  // Finale auto (prend les gagnants des demis)
+  const sf1_w = getWinner(semi1);
+  const sf2_w = getWinner(semi2);
+
+  // BO3 : score exemple "2-1" quand c'est joué + winner "a" ou "b"
+  const finale = makeMatch(sf1_w, sf2_w, "FINALE", "—", null);
 
   renderBracket([
     round1,
     [semi1, semi2],
-    [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE", "—")]
+    [finale]
   ]);
 }
+
 
 
 
@@ -359,7 +369,7 @@ function renderBracket(rounds){
     if (rIndex === rounds.length - 1) {
       const badge = document.createElement("div");
       badge.className = "finalBadge";
-      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO1 (ou BO3)</div>`;
+      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO3</div>`;
       col.insertBefore(badge, col.children[1]);
     }
 
