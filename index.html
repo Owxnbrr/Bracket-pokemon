@@ -301,17 +301,22 @@ if (is6) {
 }
 
 if (is7) {
-  round1.push(makeMatch(players[idx++], players[idx++], "QF A"));
-  round1.push(makeMatch(players[idx++], players[idx++], "QF B"));
-  round1.push(makeMatch(players[idx++], players[idx++], "QF C"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "—"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "—"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF C", "—"));
 
   const bye = players[idx++];
 
-  const semi1 = makeMatch("Gagnant QF A", bye + " (BYE)", "SF 1");
-  const semi2 = makeMatch("Gagnant QF B", "Gagnant QF C", "SF 2");
+  const semi1 = makeMatch("Gagnant QF A", bye + " (BYE)", "SF 1", "—");
+  const semi2 = makeMatch("Gagnant QF B", "Gagnant QF C", "SF 2", "—");
 
-  renderBracket([round1, [semi1, semi2], [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE")]]);
+  renderBracket([
+    round1,
+    [semi1, semi2],
+    [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE", "—")]
+  ]);
 }
+
 
 // ------------ UI Render ------------
 
