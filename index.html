@@ -241,6 +241,148 @@
       text-transform:uppercase;
     }
 
+    /* ===== Winner banner ===== */
+    .winnerBanner{
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: 0 10px 24px rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+
+    .winnerBannerInner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      padding: 14px 16px;
+    }
+
+    .winnerLeft{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-width: 220px;
+    }
+
+    .winnerKicker{
+      color: var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-weight: 900;
+      font-size: 11px;
+    }
+
+    .winnerName{
+      font-weight: 1000;
+      letter-spacing:.02em;
+      font-size: 22px;
+    }
+
+    .winnerName .crown{
+      display:inline-block;
+      margin-right: 8px;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
+    }
+
+    .rewardGrid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .rewardCard{
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-height: 64px;
+      transform: translateY(10px);
+      opacity: 0;
+      animation: riseIn .55s ease-out forwards;
+    }
+
+    .rewardCard:nth-child(1){ animation-delay: .08s; }
+    .rewardCard:nth-child(2){ animation-delay: .18s; }
+    .rewardCard:nth-child(3){ animation-delay: .28s; }
+
+    .rewardTitle{
+      font-weight: 1000;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-size: 12px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+
+    .rewardTitle .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      font-size: 11px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-weight: 1000;
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      white-space:nowrap;
+    }
+
+    .rewardDesc{
+      color: #d7defa;
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.25;
+      opacity: .95;
+    }
+
+    /* Glow animation when champion is known */
+    .winnerBanner.isChampion{
+      position:relative;
+    }
+    .winnerBanner.isChampion::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(600px 120px at 20% 0%, rgba(255,138,42,.45), transparent 60%),
+                  radial-gradient(600px 120px at 80% 0%, rgba(255,138,42,.35), transparent 60%);
+      opacity: .55;
+      filter: blur(10px);
+      pointer-events:none;
+      animation: glowPulse 2.4s ease-in-out infinite;
+    }
+
+    .winnerBanner.isChampion .winnerName{
+      text-shadow: 0 10px 24px rgba(0,0,0,.35);
+    }
+
+    @keyframes glowPulse{
+      0%,100%{ opacity:.45; transform: translateY(0); }
+      50%{ opacity:.75; transform: translateY(2px); }
+    }
+
+    @keyframes riseIn{
+      to{
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 980px){
+      .winnerBannerInner{ flex-direction:column; align-items:stretch; }
+      .rewardGrid{ grid-template-columns: 1fr; }
+      .winnerLeft{ min-width: unset; }
+    }
+
     /* small screens */
     @media (max-width: 520px){
       :root{ --cardW: 280px; --roundGap: 36px; }
@@ -259,6 +401,41 @@
     </div>
 
     <div id="bracket" class="bracket" aria-label="Bracket tournoi"></div>
+
+    <!-- Winner / Rewards banner -->
+    <div id="winnerBanner" class="winnerBanner" aria-live="polite">
+      <div class="winnerBannerInner">
+        <div class="winnerLeft">
+          <div class="winnerKicker">Résultat</div>
+          <div class="winnerName" id="winnerName">
+            <span class="crown">🏆</span>Champion : <span style="opacity:.9">À déterminer</span>
+          </div>
+        </div>
+
+        <div class="rewardGrid">
+          <div class="rewardCard">
+            <div class="rewardTitle">
+              <span class="pill">🥇 1er</span>
+            </div>
+            <div class="rewardDesc">Master Ball x1 + Orbe Vie x1 + Bonbon Rare x32</div>
+          </div>
+
+          <div class="rewardCard">
+            <div class="rewardTitle">
+              <span class="pill">🥈 2e</span>
+            </div>
+            <div class="rewardDesc">Hyper Ball x16 + Restes x1 + Bonbon Rare x16</div>
+          </div>
+
+          <div class="rewardCard">
+            <div class="rewardTitle">
+              <span class="pill">🥉 3e</span>
+            </div>
+            <div class="rewardDesc">Hyper Ball x8 + Bonbon Rare x8</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -297,7 +474,10 @@ if (is6) {
   const semi1 = makeMatch("Gagnant QF A", bye1 + " (BYE)", "SF 1");
   const semi2 = makeMatch("Gagnant QF B", bye2 + " (BYE)", "SF 2");
 
-  renderBracket([round1, [semi1, semi2], [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE")]]);
+  const finale = makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE", "—", null);
+
+  renderBracket([round1, [semi1, semi2], [finale]]);
+  updateWinnerBanner(null);
 }
 
 if (is7) {
@@ -312,15 +492,16 @@ if (is7) {
   const qfB_w = getWinner(round1[1]);
   const qfC_w = getWinner(round1[2]);
 
-  // Demis (mets winner "a" ou "b" selon le gagnant)
+  // Demis
   const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "1-0", "a");
   const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0-1", "b");
 
-  // Finale auto (prend les gagnants des demis)
+  // Finale auto (BO3)
   const sf1_w = getWinner(semi1);
   const sf2_w = getWinner(semi2);
 
-  // BO3 : score exemple "2-1" quand c'est joué + winner "a" ou "b"
+  // ✅ IMPORTANT : winner doit être "a" ou "b" (string) ou null si pas encore joué
+  // Exemple ici: sf1 gagne 2-1 => winner "a"
   const finale = makeMatch(sf1_w, sf2_w, "FINALE", "2-1", "a");
 
   renderBracket([
@@ -328,10 +509,11 @@ if (is7) {
     [semi1, semi2],
     [finale]
   ]);
+
+  // Banner champion auto si la finale a un winner
+  const champion = getWinner(finale);
+  updateWinnerBanner(champion, finale);
 }
-
-
-
 
 // ------------ UI Render ------------
 
@@ -359,7 +541,7 @@ function renderBracket(rounds){
           <div class="row winner"><span class="name">${escapeHtml(m.a)}</span><small>${m.tagA ?? ""}</small></div>
           <div class="row loser"><span class="name">${escapeHtml(m.b)}</span><small>${m.tagB ?? ""}</small></div>
         </div>
-        <div class="scoreBox">${score}</div>
+        <div class="scoreBox">${escapeHtml(score)}</div>
       `;
 
       slot.appendChild(card);
@@ -439,12 +621,34 @@ function drawConnectors(container){
   }
 }
 
+// ------------ Winner banner ------------
+
+function updateWinnerBanner(champion, finaleMatch){
+  const banner = document.getElementById("winnerBanner");
+  const nameEl = document.getElementById("winnerName");
+
+  if (!champion || champion.startsWith("Gagnant")) {
+    banner.classList.remove("isChampion");
+    nameEl.innerHTML = `<span class="crown">🏆</span>Champion : <span style="opacity:.9">À déterminer</span>`;
+    return;
+  }
+
+  banner.classList.add("isChampion");
+  const scoreTxt = finaleMatch?.score ? ` <span style="opacity:.75;font-weight:900">(${escapeHtml(finaleMatch.score)})</span>` : "";
+  nameEl.innerHTML = `<span class="crown">🏆</span>Champion : <span style="color:#fff">${escapeHtml(champion)}</span>${scoreTxt}`;
+}
+
 // ------------ Data helpers ------------
 
 function makeMatch(a, b, label, score, winner){
-  return { a, b, label, score, winner }; // winner = "a" ou "b"
+  return { a, b, label, score, winner }; // winner = "a" ou "b" (string) ou null
 }
 
+function getWinner(match){
+  if (match.winner === "a") return match.a;
+  if (match.winner === "b") return match.b;
+  return "Gagnant " + match.label;
+}
 
 function roundTitle(i, total){
   if (i === 0) return "Quarts";
@@ -458,12 +662,6 @@ function escapeHtml(str){
     '"':"&quot;","'":"&#039;"
   }[s]));
 }
-function getWinner(match){
-  if (match.winner === "a") return match.a;
-  if (match.winner === "b") return match.b;
-  return "Gagnant " + match.label;
-}
-
 </script>
 
 </body>
