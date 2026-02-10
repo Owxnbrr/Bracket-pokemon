@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bracket Tournoi</title>
+  <style>
+    :root{
+      --bg:#071b3a;
+      --panel:#0b2b57;
+      --card:#0f3b78;
+      --line:#b7c7ff55;
+      --text:#eaf0ff;
+      --muted:#a9b7e6;
+      --accent:#ff8a2a;
+      --gap:26px;
+      --roundGap:56px;
+      --cardW:320px;
+      --cardH:64px;
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,.28);
+      --stroke: 2px;
+    }
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 500px at 70% 25%, #1b6bdc55, transparent 60%),
+                  radial-gradient(900px 500px at 20% 60%, #2a8bff40, transparent 55%),
+                  linear-gradient(180deg, #061634, #04102a 70%, #030b1d);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+
+    .wrap{
+      width:min(1200px, 100%);
+      background: linear-gradient(180deg, #08224a90, #071b3a90);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding:22px 18px 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .top{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .title h1{
+      margin:0;
+      letter-spacing:.08em;
+      font-size: 42px;
+      font-weight: 900;
+    }
+    .title .sub{
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      background: linear-gradient(90deg, #0b2b57, #0f3b78);
+      border: 1px solid rgba(255,255,255,.10);
+      padding:10px 12px;
+      border-radius: 999px;
+      color: var(--text);
+      font-weight:800;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+    .badge .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255,138,42,.18);
+    }
+
+    /* BRACKET LAYOUT */
+    .bracket{
+      display:flex;
+      gap: var(--roundGap);
+      overflow:auto;
+      padding: 8px 4px 18px;
+    }
+
+    .round{
+      position:relative;
+      min-width: var(--cardW);
+      display:flex;
+      flex-direction:column;
+      gap: var(--gap);
+    }
+
+    .roundHeader{
+      color: var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 6px 0 4px;
+      padding-left: 6px;
+    }
+
+    /* Match card */
+    .match{
+      position:relative;
+      width: var(--cardW);
+      height: var(--cardH);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+      display:grid;
+      grid-template-columns: 1fr 52px;
+      align-items:stretch;
+    }
+    .match .names{
+      padding: 10px 12px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap: 6px;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      font-weight:800;
+      line-height:1;
+    }
+    .row .name{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 250px;
+    }
+    .row small{
+      color: var(--muted);
+      font-weight:700;
+    }
+    .scoreBox{
+      background: var(--accent);
+      color:#1a0f06;
+      font-weight: 1000;
+      font-size: 18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      letter-spacing:.03em;
+    }
+
+    .winner .name{ color: #ffffff; }
+    .loser .name{ color: #d7defa; opacity:.85; }
+
+    /* Connectors: from this match to next round */
+    .match[data-next]::after{
+      content:"";
+      position:absolute;
+      right:-30px;
+      top: 50%;
+      width: 30px;
+      height: var(--stroke);
+      background: var(--line);
+      transform: translateY(-50%);
+    }
+
+    /* Vertical + horizontal connectors drawn on the NEXT round column */
+    .round.nextRound .slot{
+      position:relative;
+    }
+    .round.nextRound .slot::before{
+      content:"";
+      position:absolute;
+      left:-30px;
+      top: 0;
+      bottom: 0;
+      width: 30px;
+      pointer-events:none;
+    }
+
+    /* helper line element */
+    .vline{
+      position:absolute;
+      left:-30px;
+      width: var(--stroke);
+      background: var(--line);
+      top: 0;
+      bottom: 0;
+    }
+    .hline{
+      position:absolute;
+      left:-30px;
+      height: var(--stroke);
+      background: var(--line);
+      width: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Slots in later rounds so we can position connector lines */
+    .slot{
+      position:relative;
+      width: var(--cardW);
+      height: var(--cardH);
+      display:flex;
+      align-items:stretch;
+    }
+
+    /* Final highlight */
+    .finalBadge{
+      margin-left:6px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:900;
+      color: #ffd9bf;
+    }
+    .finalBadge span{
+      background: rgba(255,138,42,.14);
+      border:1px solid rgba(255,138,42,.25);
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    /* small screens */
+    @media (max-width: 520px){
+      :root{ --cardW: 280px; --roundGap: 36px; }
+      .title h1{ font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title">
+        <div class="sub">Cobblemon • Tournoi • Élimination directe</div>
+        <h1>BRACKET</h1>
+      </div>
+      <div class="badge"><span class="dot"></span> Single Elim • 6–7 joueurs</div>
+    </div>
+
+    <div id="bracket" class="bracket" aria-label="Bracket tournoi"></div>
+  </div>
+
+<script>
+/**
+ * Bracket single elimination pour 6 ou 7 joueurs.
+ * - Si 6 joueurs -> 2 BYE (2 joueurs en demi-direct)
+ * - Si 7 joueurs -> 1 BYE (1 joueur en demi-direct)
+ *
+ * Tu modifies juste le tableau `players`.
+ */
+const players = [
+  "J1 - Pseudo",
+  "J2 - Pseudo",
+  "J3 - Pseudo",
+  "J4 - Pseudo",
+  "J5 - Pseudo",
+  "J6 - Pseudo",
+  // "J7 - Pseudo", // décommente si vous êtes 7
+];
+
+// Helpers
+const is7 = players.length === 7;
+const is6 = players.length === 6;
+if (!is6 && !is7) {
+  alert("Mets 6 ou 7 joueurs dans le tableau players.");
+}
+
+// Tirage au sort (optionnel). Commente si tu veux garder l'ordre.
+shuffle(players);
+
+// Build rounds structure
+// Round 1: (6 joueurs => 2 matchs + 2 BYE)  (7 joueurs => 3 matchs + 1 BYE)
+const round1 = [];
+let idx = 0;
+
+if (is6) {
+  round1.push(makeMatch(players[idx++], players[idx++], "QF A"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF B"));
+  // BYE slots stored as "advances"
+  const bye1 = players[idx++];
+  const bye2 = players[idx++];
+  const semi1 = makeMatch("Gagnant QF A", bye1 + " (BYE)", "SF 1");
+  const semi2 = makeMatch("Gagnant QF B", bye2 + " (BYE)", "SF 2");
+  renderBracket([round1, [semi1, semi2], [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE")]]);
+}
+
+if (is7) {
+  round1.push(makeMatch(players[idx++], players[idx++], "QF A"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF B"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF C"));
+  const bye = players[idx++];
+  const semi1 = makeMatch("Gagnant QF A", bye + " (BYE)", "SF 1");
+  const semi2 = makeMatch("Gagnant QF B", "Gagnant QF C", "SF 2");
+  renderBracket([round1, [semi1, semi2], [makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE")]]);
+}
+
+// ------------ UI Render ------------
+
+function renderBracket(rounds){
+  const el = document.getElementById("bracket");
+  el.innerHTML = "";
+
+  // Create columns
+  rounds.forEach((round, rIndex) => {
+    const col = document.createElement("div");
+    col.className = "round" + (rIndex > 0 ? " nextRound" : "");
+    col.innerHTML = `<div class="roundHeader">${roundTitle(rIndex, rounds.length)}</div>`;
+
+    // We use slots to help align + draw connectors
+    round.forEach((m, mIndex) => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+
+      const card = document.createElement("div");
+      card.className = "match";
+      card.dataset.label = m.label;
+
+      // Fake score placeholders (tu peux les remplir après)
+      const score = m.score ?? "";
+
+      card.innerHTML = `
+        <div class="names">
+          <div class="row winner"><span class="name">${escapeHtml(m.a)}</span><small>${m.tagA ?? ""}</small></div>
+          <div class="row loser"><span class="name">${escapeHtml(m.b)}</span><small>${m.tagB ?? ""}</small></div>
+        </div>
+        <div class="scoreBox">${score}</div>
+      `;
+
+      slot.appendChild(card);
+      col.appendChild(slot);
+    });
+
+    // add a final badge
+    if (rIndex === rounds.length - 1) {
+      const badge = document.createElement("div");
+      badge.className = "finalBadge";
+      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO1 (ou BO3)</div>`;
+      col.insertBefore(badge, col.children[1]);
+    }
+
+    el.appendChild(col);
+  });
+
+  // Draw connectors (basic): connect R1->R2 and R2->R3
+  // We connect pairs visually: (0,1)->0 ; (2,3)->1 ... for each round.
+  drawConnectors(el);
+}
+
+function drawConnectors(container){
+  const cols = [...container.querySelectorAll(".round")];
+
+  // For each connection between column i and i+1
+  for (let i = 0; i < cols.length - 1; i++){
+    const fromSlots = [...cols[i].querySelectorAll(".slot")];
+    const toSlots = [...cols[i+1].querySelectorAll(".slot")];
+
+    // mapping:
+    // Round1 -> Semi: from [0,1] -> to[0] and (if exists) from [2] -> to[1] or [2,?] -> to[1]
+    // Semi -> Final: from [0,1] -> to[0]
+    const pairs = [];
+    if (fromSlots.length === 2 && toSlots.length === 2) {
+      pairs.push({from:[0], to:0, single:true}); // actually each semi is from winner of one match + bye, so single line is fine
+      pairs.push({from:[1], to:1, single:true});
+    } else if (fromSlots.length === 3 && toSlots.length === 2) {
+      pairs.push({from:[0], to:0, single:true}); // QF A -> SF1 (with bye)
+      pairs.push({from:[1,2], to:1, single:false}); // QF B & C -> SF2
+    } else if (fromSlots.length === 2 && toSlots.length === 1) {
+      pairs.push({from:[0,1], to:0, single:false});
+    } else {
+      // generic: group by 2
+      for (let t=0; t<toSlots.length; t++){
+        const a = t*2, b = t*2+1;
+        if (b < fromSlots.length) pairs.push({from:[a,b], to:t, single:false});
+        else if (a < fromSlots.length) pairs.push({from:[a], to:t, single:true});
+      }
+    }
+
+    pairs.forEach(p => {
+      const toSlot = toSlots[p.to];
+      const toCard = toSlot.querySelector(".match");
+
+      // For each from, add a short hline on from card
+      p.from.forEach(fi => {
+        const fromCard = fromSlots[fi].querySelector(".match");
+        fromCard.dataset.next = "1";
+      });
+
+      // If single, just draw a short hline + no vline
+      if (p.single){
+        const h = document.createElement("div");
+        h.className = "hline";
+        toSlot.appendChild(h);
+        return;
+      }
+
+      // Create vertical line spanning from first fromSlot center to second fromSlot center,
+      // positioned in the gap area of the next column slot.
+      const firstFromRect = fromSlots[p.from[0]].getBoundingClientRect();
+      const lastFromRect  = fromSlots[p.from[p.from.length-1]].getBoundingClientRect();
+      const toRect = toSlot.getBoundingClientRect();
+
+      const top = (firstFromRect.top + firstFromRect.bottom)/2 - toRect.top;
+      const bot = (lastFromRect.top + lastFromRect.bottom)/2 - toRect.top;
+
+      const v = document.createElement("div");
+      v.className = "vline";
+      v.style.top = `${Math.min(top, bot)}px`;
+      v.style.height = `${Math.abs(bot - top)}px`;
+
+      const h = document.createElement("div");
+      h.className = "hline";
+
+      toSlot.appendChild(v);
+      toSlot.appendChild(h);
+    });
+  }
+}
+
+// ------------ Data helpers ------------
+
+function makeMatch(a,b,label,score){
+  return { a, b, label, score };
+}
+
+function roundTitle(i, total){
+  if (i === 0) return "Quarts";
+  if (i === total-1) return "Finale";
+  return "Demi-finales";
+}
+
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[s]));
+}
+</script>
+</body>
+</html>
