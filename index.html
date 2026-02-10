@@ -487,9 +487,9 @@ if (is6) {
 
 if (is7) {
   // Quarts (modifie score + winner "a"/"b"/null)
-  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "1-0", "a"));
-  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "0-1", "b"));
-  round1.push(makeMatch(players[idx++], players[idx++], "QF C", "1-0", "a"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF A", "0-0", "null"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF B", "0-0", "null"));
+  round1.push(makeMatch(players[idx++], players[idx++], "QF C", "0-0", "null"));
 
   const bye = players[idx++];
 
@@ -498,8 +498,8 @@ if (is7) {
   const qfC_w = getWinner(round1[2]);
 
   // Demis (modifie score + winner "a"/"b"/null)
-  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "1-0", "a");
-  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0-1", "b");
+  const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "0-0", "null");
+  const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0-0", "null");
 
   const sf1_w = getWinner(semi1);
   const sf2_w = getWinner(semi2);
@@ -507,10 +507,10 @@ if (is7) {
   const sf2_l = getLoser(semi2);
 
   // Finale BO3 (modifie score + winner "a"/"b"/null)
-  const finale = makeMatch(sf1_w, sf2_w, "FINALE", "2-1", "a");
+  const finale = makeMatch(sf1_w, sf2_w, "FINALE", "0-0", "null");
 
   // Petite finale (3e place) (modifie score + winner "a"/"b"/null)
-  const thirdPlace = makeMatch(sf1_l, sf2_l, "3E PLACE", "1-0", "a");
+  const thirdPlace = makeMatch(sf1_l, sf2_l, "3E PLACE", "0-0", "null");
 
   renderBracket([round1, [semi1, semi2], [finale, thirdPlace]]);
   updateWinnerBanner(finale, thirdPlace);
