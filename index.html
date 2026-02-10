@@ -441,8 +441,7 @@
 <script>
 /**
  * Bracket single elimination pour 7 joueurs (Élimination directe)
- * - 3 matchs au 1er tour + 1 BYE (1 joueur direct en demi)
- * - Ordre des joueurs FIXE (pas de shuffle, pas de changement au reload)
+ * + Petite finale (match pour la 3e place) entre les perdants des demis
  */
 const players = [
   "Owxnbrr",
@@ -475,8 +474,9 @@ if (is6) {
   const semi2 = makeMatch("Gagnant QF B", bye2 + " (BYE)", "SF 2");
 
   const finale = makeMatch("Gagnant SF 1", "Gagnant SF 2", "FINALE", "—", null);
+  const thirdPlace = makeMatch("Perdant SF 1", "Perdant SF 2", "3E PLACE", "—", null);
 
-  renderBracket([round1, [semi1, semi2], [finale]]);
+  renderBracket([round1, [semi1, semi2], [finale, thirdPlace]]);
   updateWinnerBanner(null);
 }
 
@@ -492,28 +492,35 @@ if (is7) {
   const qfB_w = getWinner(round1[1]);
   const qfC_w = getWinner(round1[2]);
 
-  // Demis
+  // Demis (mets winner "a" ou "b" selon le gagnant)
   const semi1 = makeMatch(qfA_w, bye + " (BYE)", "SF 1", "1-0", "a");
   const semi2 = makeMatch(qfB_w, qfC_w, "SF 2", "0-1", "b");
 
-  // Finale auto (BO3)
+  // Finales auto (BO3 pour la grande finale)
   const sf1_w = getWinner(semi1);
   const sf2_w = getWinner(semi2);
 
-  // ✅ IMPORTANT : winner doit être "a" ou "b" (string) ou null si pas encore joué
-  // Exemple ici: sf1 gagne 2-1 => winner "a"
-  const finale = makeMatch(sf1_w, sf2_w, "FINALE", "2-1", "a");
+  const sf1_l = getLoser(semi1);
+  const sf2_l = getLoser(semi2);
+
+  // Grande finale (BO3)
+  const finale = makeMatch(sf1_w, sf2_w, "FINALE", "2-1", "a"); // winner "a" ou "b" ou null
+
+  // Petite finale (3e place) (souvent BO1, mais tu mets ce que tu veux)
+  const thirdPlace = makeMatch(sf1_l, sf2_l, "3E PLACE", "1-0", "a"); // winner "a" ou "b" ou null
 
   renderBracket([
     round1,
     [semi1, semi2],
-    [finale]
+    [finale, thirdPlace]
   ]);
 
   // Banner champion auto si la finale a un winner
   const champion = getWinner(finale);
   updateWinnerBanner(champion, finale);
 }
+
+
 
 // ------------ UI Render ------------
 
@@ -536,12 +543,15 @@ function renderBracket(rounds){
 
       const score = m.score ?? "";
 
+      // Petite finale: on affiche un petit tag dans le score si vide (optionnel)
+      const scoreText = score === "" ? "" : score;
+
       card.innerHTML = `
         <div class="names">
-          <div class="row winner"><span class="name">${escapeHtml(m.a)}</span><small>${m.tagA ?? ""}</small></div>
+          <div class="row winner"><span class="name">${escapeHtml(m.a)}</span><small>${m.label}</small></div>
           <div class="row loser"><span class="name">${escapeHtml(m.b)}</span><small>${m.tagB ?? ""}</small></div>
         </div>
-        <div class="scoreBox">${escapeHtml(score)}</div>
+        <div class="scoreBox">${escapeHtml(scoreText)}</div>
       `;
 
       slot.appendChild(card);
@@ -569,15 +579,26 @@ function drawConnectors(container){
     const toSlots = [...cols[i+1].querySelectorAll(".slot")];
 
     const pairs = [];
+
+    // Cas spécial: 2 demis -> 2 matchs (finale + 3e place)
     if (fromSlots.length === 2 && toSlots.length === 2) {
+      // Finale
+      pairs.push({from:[0,1], to:0, single:false});
+      // 3e place
+      pairs.push({from:[0,1], to:1, single:false});
+    }
+    else if (fromSlots.length === 2 && toSlots.length === 1) {
+      pairs.push({from:[0,1], to:0, single:false});
+    }
+    else if (fromSlots.length === 2 && toSlots.length === 2) {
       pairs.push({from:[0], to:0, single:true});
       pairs.push({from:[1], to:1, single:true});
-    } else if (fromSlots.length === 3 && toSlots.length === 2) {
+    }
+    else if (fromSlots.length === 3 && toSlots.length === 2) {
       pairs.push({from:[0], to:0, single:true});       // QF A -> SF 1 (avec BYE)
       pairs.push({from:[1,2], to:1, single:false});    // QF B & QF C -> SF 2
-    } else if (fromSlots.length === 2 && toSlots.length === 1) {
-      pairs.push({from:[0,1], to:0, single:false});
-    } else {
+    }
+    else {
       for (let t=0; t<toSlots.length; t++){
         const a = t*2, b = t*2+1;
         if (b < fromSlots.length) pairs.push({from:[a,b], to:t, single:false});
@@ -650,6 +671,12 @@ function getWinner(match){
   return "Gagnant " + match.label;
 }
 
+function getLoser(match){
+  if (match.winner === "a") return match.b;
+  if (match.winner === "b") return match.a;
+  return "Perdant " + match.label;
+}
+
 function roundTitle(i, total){
   if (i === 0) return "Quarts";
   if (i === total-1) return "Finale";
@@ -663,6 +690,7 @@ function escapeHtml(str){
   }[s]));
 }
 </script>
+
 
 </body>
 </html>
