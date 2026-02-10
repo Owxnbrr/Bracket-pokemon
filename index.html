@@ -270,13 +270,13 @@
  * Tu modifies juste le tableau `players`.
  */
 const players = [
-  "J1 - Owxnbrr",
-  "J2 - Turuk",
-  "J3 - King",
-  "J4 - Zaliky",
-  "J5 - Sensei",
-  "J6 - Nessia",
-  "J7 - Loufox", 
+  "Owxnbrr",
+  "Turuk",
+  "King",
+  "Zaliky",
+  "Sensei",
+  "Nessia",
+  "Loufox", 
 ];
 
 // Helpers
@@ -355,7 +355,7 @@ function renderBracket(rounds){
     if (rIndex === rounds.length - 1) {
       const badge = document.createElement("div");
       badge.className = "finalBadge";
-      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO1 (ou BO3)</div>`;
+      badge.innerHTML = `<span>Finale</span> <div style="opacity:.9">BO3</div>`;
       col.insertBefore(badge, col.children[1]);
     }
 
